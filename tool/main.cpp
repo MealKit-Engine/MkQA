@@ -1,4 +1,4 @@
-// MealKit QA executable: SDL3 window + SDL_Renderer + Dear ImGui (same framework as MealKit Audio/Manager). The actual screen is App.
+// MealKit QA executable: SDL3 window + SDL_Renderer + Dear ImGui (same framework as MkAudio/Manager). The actual screen is App.
 //   MealKitQA [--project <MealKit project folder>] [--select <report name>] [--lang ko|en] [--tests] [--frames N --capture <png>]
 //   MealKitQA --list [--project <folder>]   prints the game's reports and replays without a window (for tests/scripts)
 //   MealKitQA --run-tests [--project <folder>] [--mp-test]   runs tests/*.scenario (and mp_test) without a window, exit code 1 on a failure

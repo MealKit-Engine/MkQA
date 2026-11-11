@@ -1,5 +1,5 @@
 # MealKit QA: views a game's bug reports, crash reports and replays and opens them in the MealKit editor (SDL3 + Dear ImGui, same framework as
-# MealKit Audio and MealKit Manager). Doesn't link the engine: reads the files the game writes in its user folder (include/mkqa/Reports.h).
+# MkAudio and MealKit Manager). Doesn't link the engine: reads the files the game writes in its user folder (include/mkqa/Reports.h).
 #   build.bat                 (Windows: vcvars64 + Ninja, build\bin\MealKitQA.exe, including tests)
 #   cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release && cmake --build build && ctest --test-dir build
 #   cmake --install build --prefix "%LOCALAPPDATA%\MealKit\tools\qa"   (the editor's [Tools] menu finds it there)
