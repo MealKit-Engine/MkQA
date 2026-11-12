@@ -18,6 +18,7 @@ namespace mkqa::tool {
 class App {
 public:
     SDL_Window* window = nullptr;
+    bool iconFont = false; // the Segoe icon font merged into the UI font (main.cpp loadFonts)
     SDL_Renderer* renderer = nullptr;
 
     // project: --project folder (else the most recent project); select: file name to select (--select)
@@ -28,6 +29,8 @@ public:
     std::string title() const;
 
 private:
+    // Flat square icon button with its name in the tooltip (engine docs/TOOL_DESIGN.md section 1); the name as the label without the icon font
+    bool iconButton(const char* glyph, const char* name);
     void useProject(const std::string& directory);
     void refresh();
     void select(int index);

@@ -83,4 +83,5 @@ add_test(NAME mkqa_tests COMMAND mkqa_tests)
 
 if(WIN32)
     target_sources(MealKitQA PRIVATE tool/res/MealKitQA.rc) # app icon (engine docs/TOOL_DESIGN.md section 5)
+    target_link_libraries(MealKitQA PRIVATE dwmapi) # editor-colored title bar
 endif()

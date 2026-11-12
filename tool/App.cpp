@@ -15,6 +15,14 @@ namespace mkqa::tool {
 namespace {
 
 constexpr double kScanSeconds = 2.0; // new reports appear while the game runs
+// Glyphs from engine docs/TOOL_DESIGN.md section 2 (Segoe Fluent Icons / MDL2 Assets)
+constexpr const char* kIconRefresh = "\xEE\x9C\xAC";    // U+E72C
+constexpr const char* kIconFolderOpen = "\xEE\xA0\xB8"; // U+E838 show in Explorer
+constexpr const char* kIconLaunch = "\xEE\xA2\xA7";     // U+E8A7 open in its program
+constexpr const char* kIconCopy = "\xEE\xA3\x88";       // U+E8C8
+constexpr const char* kIconDelete = "\xEE\x9D\x8D";     // U+E74D delete files
+constexpr const char* kIconPlay = "\xEE\x9D\xA8";       // U+E768
+constexpr const char* kIconStop = "\xEE\x9C\x9A";       // U+E71A
 
 std::string lower(std::string s) {
     for (char& c : s)
@@ -58,6 +66,20 @@ std::string sizeText(uint64_t bytes) {
 std::string folderOf(const std::string& path) { return mkcontract::utf8Of(mkcontract::pathOf(path).parent_path()); }
 
 } // namespace
+
+bool App::iconButton(const char* glyph, const char* name) {
+    const std::string label = std::string(iconFont ? glyph : name) + "##" + name;
+    // Flat like the editor's icon buttons: clear until hovered
+    if (iconFont) {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyleColorVec4(ImGuiCol_FrameBgHovered));
+    }
+    const bool pressed = iconFont ? ImGui::Button(label.c_str(), {ImGui::GetFrameHeight(), 0}) : ImGui::Button(label.c_str());
+    if (iconFont) ImGui::PopStyleColor(2);
+    if (iconFont && ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip | ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("%s", name);
+    return pressed;
+}
+
 
 void App::init(const std::string& project, const std::string& select) {
     setLanguage(mkcontract::editorSetting("language").empty() ? "ko" : mkcontract::editorSetting("language"));
@@ -211,12 +233,12 @@ void App::drawTop() {
         ImGui::EndCombo();
     }
     ImGui::SameLine();
-    if (ImGui::Button(tr("Refresh"))) {
+    if (iconButton(kIconRefresh, tr("Refresh"))) {
         m_listKey.clear();
         refresh();
     }
     ImGui::SameLine();
-    if (ImGui::Button(tr("Open Folder")) && !m_folder.empty()) SDL_OpenURL(("file:///" + m_folder).c_str());
+    if (iconButton(kIconFolderOpen, tr("Open Folder")) && !m_folder.empty()) SDL_OpenURL(("file:///" + m_folder).c_str());
     if (m_testsPage) return; // the filters below are for the report list
     ImGui::SameLine();
     ImGui::Checkbox(tr("Bug reports"), &m_showBug);
@@ -282,7 +304,7 @@ void App::drawDetail() {
 
     const bool playable = r.recording.valid;
     ImGui::BeginDisabled(!playable);
-    if (ImGui::Button(tr("Open in Editor"))) openInEditor(r);
+    if (iconButton(kIconLaunch, tr("Open in Editor"))) openInEditor(r);
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
         ImGui::SetTooltip("%s", playable ? tr("Plays the recording in the editor and pauses where the report was made")
@@ -294,14 +316,14 @@ void App::drawDetail() {
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
         ImGui::SetTooltip("%s", tr("Turns the recording into a scenario test in the project's tests/ folder, with every state value at the report's tick as checks. Keep the checks that show the bug."));
     ImGui::SameLine();
-    if (ImGui::Button(tr("Copy Info"))) {
+    if (iconButton(kIconCopy, tr("Copy Info"))) {
         SDL_SetClipboardText(r.summaryText().c_str());
         setStatus(tr("Copied the report info. Paste it into the issue."), false);
     }
     ImGui::SameLine();
-    if (ImGui::Button(tr("Show File"))) SDL_OpenURL(("file:///" + folderOf(r.entry.path)).c_str());
+    if (iconButton(kIconFolderOpen, tr("Show File"))) SDL_OpenURL(("file:///" + folderOf(r.entry.path)).c_str());
     ImGui::SameLine();
-    if (ImGui::Button(tr("Delete"))) m_confirmDelete = true;
+    if (iconButton(kIconDelete, tr("Delete"))) m_confirmDelete = true;
 
     if (!r.error.empty()) {
         ImGui::TextColored(ImVec4(1.0f, 0.45f, 0.45f, 1.0f), "%s", trf("Cannot read: %s", r.error.c_str()).c_str());
@@ -502,12 +524,12 @@ void App::drawTests() {
         return;
     }
     ImGui::BeginDisabled(m_scenarios.empty());
-    if (ImGui::Button(tr("Run All")))
+    if (iconButton(kIconPlay, tr("Run All")))
         for (const std::string& f : m_scenarios) runScenario(f, false);
     ImGui::EndDisabled();
     ImGui::SameLine();
     ImGui::BeginDisabled(!m_runner.busy());
-    if (ImGui::Button(tr("Stop"))) {
+    if (iconButton(kIconStop, tr("Stop"))) {
         m_runner.cancelPending();
         for (auto& [id, file] : m_scenarioJobs)
             if (m_results[file].state == ScenarioResult::State::Running) m_results[file].state = ScenarioResult::State::NotRun;
@@ -592,14 +614,14 @@ void App::drawTestDetail() {
         ImGui::TextDisabled("%s", trf("%u check(s), %u failed", r.checks, r.failed).c_str());
     }
     ImGui::BeginDisabled(r.state == ScenarioResult::State::Running);
-    if (ImGui::Button(tr("Run"))) runScenario(f, false);
+    if (iconButton(kIconPlay, tr("Run"))) runScenario(f, false);
     ImGui::SameLine();
     if (ImGui::Button(tr("Update Expected"))) runScenario(f, true);
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
         ImGui::SetTooltip("%s", tr("Rewrites the == values in the file with the current results (when the rules changed on purpose)"));
     ImGui::SameLine();
-    if (ImGui::Button(tr("Show File"))) SDL_OpenURL(("file:///" + folderOf(f)).c_str());
+    if (iconButton(kIconFolderOpen, tr("Show File"))) SDL_OpenURL(("file:///" + folderOf(f)).c_str());
     for (const std::string& line : r.failures) ImGui::TextColored(ImVec4(1.0f, 0.45f, 0.45f, 1.0f), "%s", line.c_str());
     if (!ImGui::BeginTabBar("##testtabs")) return;
     if (ImGui::BeginTabItem(tr("File"))) {
