@@ -42,7 +42,7 @@ jobs:
         run: |
           if [ -n "${{ matrix.cc }}" ]; then export CC=${{ matrix.cc }} CXX=${{ matrix.cxx }}; fi
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
-      - name: Build (MealKitQA, tests)
+      - name: Build (MkQA, tests)
         run: cmake --build build
       - name: Test
         run: ctest --test-dir build --output-on-failure

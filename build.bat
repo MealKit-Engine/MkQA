@@ -1,5 +1,5 @@
 @echo off
-rem Builds MealKit QA (Release, Ninja) into build\ and runs the tests.
+rem Builds MkQA (Release, Ninja) into build\ and runs the tests.
 rem Usage: build.bat            build + tests
 rem        build.bat install    also copy to %LOCALAPPDATA%\MealKit\tools\qa (the editor's [Tools] menu finds it there)
 setlocal
@@ -14,4 +14,4 @@ if not exist build\build.ninja cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=R
 cmake --build build || exit /b 1
 ctest --test-dir build --output-on-failure || exit /b 1
 if /i "%~1"=="install" cmake --install build --prefix "%LOCALAPPDATA%\MealKit\tools\qa" || exit /b 1
-echo [MealKit QA] Build OK: %~dp0build\bin\MealKitQA.exe
+echo [MkQA] Build OK: %~dp0build\bin\MkQA.exe

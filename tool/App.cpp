@@ -104,7 +104,7 @@ void App::shutdown() {
 }
 
 std::string App::title() const {
-    return m_project.valid ? "MealKit QA - " + (m_project.name.empty() ? std::string("MealKitGame") : m_project.name) : "MealKit QA";
+    return m_project.valid ? "MkQA - " + (m_project.name.empty() ? std::string("MealKitGame") : m_project.name) : "MkQA";
 }
 
 void App::useProject(const std::string& directory) {
@@ -253,7 +253,7 @@ void App::drawTop() {
 
 void App::drawList() {
     if (!m_project.valid) {
-        ImGui::TextWrapped("%s", tr("Pick a game. MealKit QA lists the projects you opened in the editor."));
+        ImGui::TextWrapped("%s", tr("Pick a game. MkQA lists the projects you opened in the editor."));
         return;
     }
     if (m_reports.empty()) {
@@ -520,7 +520,7 @@ void App::saveAsScenario(const Report& report) {
 
 void App::drawTests() {
     if (!m_project.valid) {
-        ImGui::TextWrapped("%s", tr("Pick a game. MealKit QA lists the projects you opened in the editor."));
+        ImGui::TextWrapped("%s", tr("Pick a game. MkQA lists the projects you opened in the editor."));
         return;
     }
     ImGui::BeginDisabled(m_scenarios.empty());

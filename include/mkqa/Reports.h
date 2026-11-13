@@ -1,6 +1,6 @@
 #pragma once
 
-// What MealKit QA reads: a game's bug reports, crash reports and replays in the per-game user folder. No window/ImGui (tests/QaTests.cpp).
+// What MkQA reads: a game's bug reports, crash reports and replays in the per-game user folder. No window/ImGui (tests/QaTests.cpp).
 // Connects to the engine only through files (engine docs: "Bug report bundles", "Crash reports", "Saving replays"):
 //   <game folder>/bugreports/<YYYY-MM-DD_HH-MM[-n]>.zip   info.txt, log.txt, screenshot.png, replay.rec (absent outside a match)
 //   <game folder>/crash/<YYYY-MM-DD_HH-MM[-n]>.zip        info.txt, crash.txt, log.txt, crash.dmp, replay.rec

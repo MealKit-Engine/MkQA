@@ -1,9 +1,9 @@
-// MealKit QA executable: SDL3 window + SDL_Renderer + Dear ImGui (same framework as MkAudio/Manager). The actual screen is App.
-//   MealKitQA [--project <MealKit project folder>] [--select <report name>] [--lang ko|en] [--tests] [--frames N --capture <png>]
-//   MealKitQA --list [--project <folder>]   prints the game's reports and replays without a window (for tests/scripts)
-//   MealKitQA --run-tests [--project <folder>] [--mp-test]   runs tests/*.scenario (and mp_test) without a window, exit code 1 on a failure
-//   MealKitQA --make-scenario <report name> [--project <folder>]   tests/<kind>_<name>.scenario from a report's recording, checks filled
-//   MealKitQA --version
+// MkQA executable: SDL3 window + SDL_Renderer + Dear ImGui (same framework as MkAudio/Manager). The actual screen is App.
+//   MkQA [--project <MealKit project folder>] [--select <report name>] [--lang ko|en] [--tests] [--frames N --capture <png>]
+//   MkQA --list [--project <folder>]   prints the game's reports and replays without a window (for tests/scripts)
+//   MkQA --run-tests [--project <folder>] [--mp-test]   runs tests/*.scenario (and mp_test) without a window, exit code 1 on a failure
+//   MkQA --make-scenario <report name> [--project <folder>]   tests/<kind>_<name>.scenario from a report's recording, checks filled
+//   MkQA --version
 #include "App.h"
 #include "Strings.h"
 
@@ -74,7 +74,7 @@ bool loadFonts(float size) {
     return false;
 }
 
-// The MealKit editor's look (module-debug src/mealkit/debug/ImGuiLayer.cpp applyStyle), copied since MealKit QA doesn't link the engine
+// The MealKit editor's look (module-debug src/mealkit/debug/ImGuiLayer.cpp applyStyle), copied since MkQA doesn't link the engine
 // (engine docs/TOOL_DESIGN.md section 3). Keep it the same as the original.
 void applyEditorStyle(float scale) {
     ImGui::StyleColorsDark();
@@ -296,7 +296,7 @@ int main(int argc, char** argv) {
         else if (std::strcmp(argv[i], "--mp-test") == 0) mpTest = true;
         else if (std::strcmp(argv[i], "--make-scenario") == 0 && i + 1 < argc) makeScenarioArg = argv[++i];
         else if (std::strcmp(argv[i], "--version") == 0) {
-            std::printf("MealKit QA %s\n", MKQA_VERSION);
+            std::printf("MkQA %s\n", MKQA_VERSION);
             return 0;
         }
     }
@@ -309,7 +309,7 @@ int main(int argc, char** argv) {
         return 1;
     }
     const float scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
-    SDL_Window* window = SDL_CreateWindow("MealKit QA", static_cast<int>(1300 * scale), static_cast<int>(820 * scale),
+    SDL_Window* window = SDL_CreateWindow("MkQA", static_cast<int>(1300 * scale), static_cast<int>(820 * scale),
                                           SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_HIDDEN);
     SDL_Renderer* renderer = window ? SDL_CreateRenderer(window, nullptr) : nullptr;
     if (!renderer) {
@@ -327,7 +327,7 @@ int main(int argc, char** argv) {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     // Window layout goes in the user folder
     static std::string ini;
-    if (char* pref = SDL_GetPrefPath("MealKit", "MealKit QA")) {
+    if (char* pref = SDL_GetPrefPath("MealKit", "MealKit QA") /* kept: settings folder from before the MkQA rename */) {
         ini = std::string(pref) + "imgui.ini";
         SDL_free(pref);
         io.IniFilename = ini.c_str();

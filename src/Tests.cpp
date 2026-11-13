@@ -123,7 +123,7 @@ bool writeScenarioFromReport(const Report& report, const Project& project, std::
             return false;
         }
     }
-    std::string text = "# From MealKit QA: " + std::string(kindName(report.entry.kind)) + " " + report.entry.name;
+    std::string text = "# From MkQA: " + std::string(kindName(report.entry.kind)) + " " + report.entry.name;
     if (!report.value("note").empty()) text += " \"" + report.value("note") + "\"";
     text += "\n# The checks below are every state value at the report's tick. Keep the ones that state the bug (fix it, then\n"
             "# make them say what should happen) and delete the rest.\n";

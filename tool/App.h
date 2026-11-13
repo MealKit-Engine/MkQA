@@ -1,6 +1,6 @@
 #pragma once
 
-// MealKit QA screen: the game's reports and replays on the left, the chosen one on the right. Window/fonts/loop are in main.cpp.
+// MkQA screen: the game's reports and replays on the left, the chosen one on the right. Window/fonts/loop are in main.cpp.
 #include "Runner.h"
 #include "mkqa/Reports.h"
 #include "mkqa/Tests.h"

@@ -1,4 +1,4 @@
-# MealKit QA
+# MkQA
 
 A QA tool for games made with the [MealKit engine](https://github.com/MealKit-Engine/MealKit). It shows a game's bug reports, crash reports and replays in one list and opens any of them in the MealKit editor, which plays the recording and pauses where the report was made. It also runs the project's scenario tests and the engine's multiplayer test, and turns a report into a scenario test.
 
@@ -8,7 +8,7 @@ C++20, SDL3 + Dear ImGui (the same framework as MkAudio and MealKit Manager). MI
 
 ## What it reads
 
-The game writes these files into its per-game user folder (`%LOCALAPPDATA%\<project name>` on Windows). MealKit QA only reads them and does not link the engine.
+The game writes these files into its per-game user folder (`%LOCALAPPDATA%\<project name>` on Windows). MkQA only reads them and does not link the engine.
 
 | Folder | File | Made by |
 |---|---|---|
@@ -32,13 +32,13 @@ The game writes these files into its per-game user folder (`%LOCALAPPDATA%\<proj
 ## Build
 
 ```bat
-build.bat            :: build\bin\MealKitQA.exe + tests
+build.bat            :: build\bin\MkQA.exe + tests
 build.bat install    :: also copy to %LOCALAPPDATA%\MealKit\tools\qa (the editor's [Tools] menu finds it)
 ```
 
 Other systems: `cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release && cmake --build build && ctest --test-dir build`.
 
-Command line: `MealKitQA [--project <folder>] [--select <report name>] [--tests] [--lang ko|en]`. Without a window: `--list` prints the reports, `--run-tests [--mp-test]` runs the scenarios (and mp_test) and exits with 1 on a failure, `--make-scenario <report name>` does Save as Scenario.
+Command line: `MkQA [--project <folder>] [--select <report name>] [--tests] [--lang ko|en]`. Without a window: `--list` prints the reports, `--run-tests [--mp-test]` runs the scenarios (and mp_test) and exits with 1 on a failure, `--make-scenario <report name>` does Save as Scenario.
 
 ## Working on it
 

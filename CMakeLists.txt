@@ -1,12 +1,12 @@
-# MealKit QA: views a game's bug reports, crash reports and replays and opens them in the MealKit editor (SDL3 + Dear ImGui, same framework as
+# MkQA: views a game's bug reports, crash reports and replays and opens them in the MealKit editor (SDL3 + Dear ImGui, same framework as
 # MkAudio and MealKit Manager). Doesn't link the engine: reads the files the game writes in its user folder (include/mkqa/Reports.h).
-#   build.bat                 (Windows: vcvars64 + Ninja, build\bin\MealKitQA.exe, including tests)
+#   build.bat                 (Windows: vcvars64 + Ninja, build\bin\MkQA.exe, including tests)
 #   cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release && cmake --build build && ctest --test-dir build
 #   cmake --install build --prefix "%LOCALAPPDATA%\MealKit\tools\qa"   (the editor's [Tools] menu finds it there)
 cmake_minimum_required(VERSION 3.25)
 project(mkqa VERSION 0.2.0 LANGUAGES C CXX)
 
-option(MKQA_BUILD_TOOL "Build the MealKitQA window (SDL3 + Dear ImGui)" ON)
+option(MKQA_BUILD_TOOL "Build the MkQA window (SDL3 + Dear ImGui)" ON)
 
 # Tool contract (MealKit-Contract, copied into third_party/mkcontract with that repo's tools/vendor.ps1): files, user folder, manifest rules
 set(MKCONTRACT_BUILD_TESTS OFF)
@@ -38,13 +38,13 @@ if(MKQA_BUILD_TOOL)
         target_compile_options(mkqa_imgui PRIVATE /utf-8)
     endif()
 
-    add_executable(MealKitQA WIN32 tool/main.cpp tool/App.h tool/App.cpp tool/Runner.h tool/Runner.cpp)
-    target_link_libraries(MealKitQA PRIVATE mkqa mkqa_imgui SDL3::SDL3-static)
-    target_compile_definitions(MealKitQA PRIVATE MKQA_VERSION="${PROJECT_VERSION}")
-    set_target_properties(MealKitQA PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+    add_executable(MkQA WIN32 tool/main.cpp tool/App.h tool/App.cpp tool/Runner.h tool/Runner.cpp)
+    target_link_libraries(MkQA PRIVATE mkqa mkqa_imgui SDL3::SDL3-static)
+    target_compile_definitions(MkQA PRIVATE MKQA_VERSION="${PROJECT_VERSION}")
+    set_target_properties(MkQA PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
     foreach(config Debug Release RelWithDebInfo MinSizeRel)
         string(TOUPPER ${config} upper)
-        set_target_properties(MealKitQA PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${upper} ${CMAKE_BINARY_DIR}/bin)
+        set_target_properties(MkQA PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${upper} ${CMAKE_BINARY_DIR}/bin)
     endforeach()
 
     # Manifest next to the program (MealKit tool contract). exe is written without an extension, .exe is appended on Windows
@@ -52,14 +52,14 @@ if(MKQA_BUILD_TOOL)
     configure_file(tool/mealkit-tool.txt ${CMAKE_BINARY_DIR}/bin/mealkit-tool.txt @ONLY)
     if(WIN32)
         file(READ ${CMAKE_BINARY_DIR}/bin/mealkit-tool.txt manifest)
-        string(REPLACE "exe MealKitQA\n" "exe MealKitQA.exe\n" manifest "${manifest}")
+        string(REPLACE "exe MkQA\n" "exe MkQA.exe\n" manifest "${manifest}")
         file(WRITE ${CMAKE_BINARY_DIR}/bin/mealkit-tool.txt "${manifest}")
     endif()
-    install(TARGETS MealKitQA RUNTIME DESTINATION .)
+    install(TARGETS MkQA RUNTIME DESTINATION .)
     install(FILES ${CMAKE_BINARY_DIR}/bin/mealkit-tool.txt DESTINATION .)
 endif()
 
-foreach(target mkqa MealKitQA)
+foreach(target mkqa MkQA)
     if(NOT TARGET ${target})
         continue()
     endif()
@@ -82,6 +82,6 @@ endif()
 add_test(NAME mkqa_tests COMMAND mkqa_tests)
 
 if(WIN32)
-    target_sources(MealKitQA PRIVATE tool/res/MealKitQA.rc) # app icon (engine docs/TOOL_DESIGN.md section 5)
-    target_link_libraries(MealKitQA PRIVATE dwmapi) # editor-colored title bar
+    target_sources(MkQA PRIVATE tool/res/MkQA.rc) # app icon (engine docs/TOOL_DESIGN.md section 5)
+    target_link_libraries(MkQA PRIVATE dwmapi) # editor-colored title bar
 endif()

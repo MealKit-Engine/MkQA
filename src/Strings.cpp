@@ -27,7 +27,7 @@ constexpr Pair kKorean[] = {
     {"Crashes", "크래시"},
     {"Replays", "리플레이"},
     {"Search note, scene, version", "메모, 장면, 버전 검색"},
-    {"Pick a game. MealKit QA lists the projects you opened in the editor.", "게임을 고르세요. MealKit QA는 에디터에서 연 프로젝트를 보여 줍니다."},
+    {"Pick a game. MkQA lists the projects you opened in the editor.", "게임을 고르세요. MkQA는 에디터에서 연 프로젝트를 보여 줍니다."},
     {"No reports yet. Press F9 in the game to save a bug report; crashes and finished matches show up here too.",
      "아직 리포트가 없습니다. 게임에서 F9를 누르면 버그 리포트가 저장되고, 크래시와 끝난 매치도 여기에 나옵니다."},
     {"When", "시각"},

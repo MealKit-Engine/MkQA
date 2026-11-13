@@ -1,6 +1,6 @@
 #pragma once
 
-// What MealKit QA runs: a project's scenario tests and the engine's mp_test. No window/ImGui (tests/QaTests.cpp); the tool starts the
+// What MkQA runs: a project's scenario tests and the engine's mp_test. No window/ImGui (tests/QaTests.cpp); the tool starts the
 // processes (tool/Runner.*). Connects to the engine only through command lines and their output (engine game/Scenario.h, tools/mp_test.ps1):
 //   <game>_headless --test <project>/tests/<name>.scenario     → "SCENARIO FAIL <file>:<line> ..." lines, then "SCENARIO ok <file> checks=N"
 //                                                                or "SCENARIO FAIL <file> failed=K/N" (exit code 6)
