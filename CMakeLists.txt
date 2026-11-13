@@ -83,5 +83,7 @@ add_test(NAME mkqa_tests COMMAND mkqa_tests)
 
 if(WIN32)
     target_sources(MkQA PRIVATE tool/res/MkQA.rc) # app icon (engine docs/TOOL_DESIGN.md section 5)
+    # rc.exe reports no dependencies: without this a regenerated icon never reaches the exe
+    set_source_files_properties(tool/res/MkQA.rc PROPERTIES OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/tool/res/MkQA.ico")
     target_link_libraries(MkQA PRIVATE dwmapi) # editor-colored title bar
 endif()
