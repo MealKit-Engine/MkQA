@@ -1,5 +1,6 @@
 #include "App.h"
 
+#include "Form.h"
 #include "Strings.h"
 
 #include <mkcontract/Files.h>
@@ -14,6 +15,7 @@
 #include <filesystem>
 
 namespace mkqa::tool {
+namespace form = mktool::form;
 namespace {
 
 constexpr double kScanSeconds = 2.0; // new reports appear while the game runs
@@ -53,7 +55,7 @@ void popControlColors() {
 }
 
 // Every checkbox goes through here, never ImGui::Checkbox (engine docs/TOOL_DESIGN.md 3.2)
-bool checkbox(const char* label, bool* v) {
+[[maybe_unused]] bool checkbox(const char* label, bool* v) {
     const bool on = *v;
     pushControlColors(on);
     const bool changed = ImGui::Checkbox(label, v);
@@ -267,20 +269,17 @@ void App::frame(double dt) {
     ImGui::Begin("##qa", nullptr,
                  ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus);
     drawTop();
-    ImGui::Separator();
-    if (ImGui::BeginTabBar("##pages")) {
-        if (ImGui::BeginTabItem(tr("Reports"))) {
-            m_testsPage = false;
-            ImGui::EndTabItem();
-        }
-        const std::string testsLabel = trf("Tests (%u)", static_cast<unsigned>(m_scenarios.size())) + "###tests";
-        if (ImGui::BeginTabItem(testsLabel.c_str(), nullptr, m_selectTests ? ImGuiTabItemFlags_SetSelected : 0)) {
-            m_testsPage = true;
-            ImGui::EndTabItem();
-        }
-        m_selectTests = false;
-        ImGui::EndTabBar();
-    }
+    ImGui::Dummy(ImVec2(0.0f, 4.0f * form::dpi()));
+    // The two pages as a segmented control (MealKit Manager's page switch), not an ImGui tab strip
+    if (m_selectTests) m_testsPage = true;
+    m_selectTests = false;
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 3.0f * form::dpi()); // the track's padding
+    form::beginSegments();
+    if (form::segment(tr("Reports"), !m_testsPage)) m_testsPage = false;
+    const std::string testsLabel = trf("Tests (%u)", static_cast<unsigned>(m_scenarios.size())) + "###tests";
+    if (form::segment(testsLabel.c_str(), m_testsPage)) m_testsPage = true;
+    form::endSegments();
+    ImGui::Dummy(ImVec2(0.0f, 4.0f * form::dpi()));
     const float statusHeight = ImGui::GetFrameHeightWithSpacing();
     if (ImGui::BeginTable("##split", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV,
                           ImVec2(0, ImGui::GetContentRegionAvail().y - statusHeight))) {
@@ -295,7 +294,7 @@ void App::frame(double dt) {
         else drawDetail();
         ImGui::EndTable();
     }
-    ImGui::Separator();
+    ImGui::Dummy(ImVec2(0.0f, 2.0f * form::dpi())); // space, not a line, above the status text
     if (m_status.empty()) ImGui::TextDisabled("%s", m_folder.c_str());
     else if (m_statusError) ImGui::TextColored(ImVec4(1.0f, 0.384f, 0.314f, 1.0f), "%s", m_status.c_str());
     else ImGui::TextUnformatted(m_status.c_str());
@@ -328,13 +327,14 @@ void App::drawTop() {
         drawLanguageButton();
         return; // the filters below are for the report list
     }
+    // Kind filters as chips (tool/Form.h), not a row of checkboxes
+    ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.x * 2.0f);
+    form::chip(tr("Bug reports"), &m_showBug);
     ImGui::SameLine();
-    checkbox(tr("Bug reports"), &m_showBug);
+    form::chip(tr("Crashes"), &m_showCrash);
     ImGui::SameLine();
-    checkbox(tr("Crashes"), &m_showCrash);
-    ImGui::SameLine();
-    checkbox(tr("Replays"), &m_showReplay);
-    ImGui::SameLine();
+    form::chip(tr("Replays"), &m_showReplay);
+    ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.x * 2.0f);
     ImGui::SetNextItemWidth(-(ImGui::GetFrameHeight() + ImGui::GetStyle().ItemSpacing.x)); // room for the language button
     ImGui::InputTextWithHint("##search", tr("Search note, scene, version"), m_search, sizeof(m_search));
     drawLanguageButton();
@@ -407,11 +407,14 @@ void App::drawList() {
 void App::drawDetail() {
     if (m_selected < 0 || m_selected >= static_cast<int>(m_reports.size())) return;
     const Report& r = m_reports[static_cast<size_t>(m_selected)];
+    // Heading: when, large; the kind and size under it in the secondary step
+    ImGui::PushFont(nullptr, ImGui::GetStyle().FontSizeBase * 1.3f);
+    ImGui::TextUnformatted((r.entry.stamp.empty() ? r.entry.name : r.entry.stamp).c_str());
+    ImGui::PopFont();
     ImGui::TextColored(kindColor(r.entry.kind), "%s", kindLabel(r.entry.kind));
     ImGui::SameLine();
-    ImGui::TextUnformatted((r.entry.stamp.empty() ? r.entry.name : r.entry.stamp).c_str());
-    ImGui::SameLine();
     ImGui::TextDisabled("%s", sizeText(r.entry.bytes).c_str());
+    ImGui::Dummy(ImVec2(0.0f, 4.0f * form::dpi()));
 
     const bool playable = r.recording.valid;
     ImGui::BeginDisabled(!playable);
@@ -680,7 +683,7 @@ void App::drawTests() {
         ImGui::EndTable();
     }
 
-    ImGui::SeparatorText(tr("Multiplayer test (mp_test)"));
+    form::section(tr("Multiplayer test (mp_test)"));
     ImGui::SetNextItemWidth(ImGui::GetFontSize() * 6);
     ImGui::InputInt(tr("clients"), &m_mpClients);
     m_mpClients = std::clamp(m_mpClients, 1, 7);
