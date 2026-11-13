@@ -43,8 +43,8 @@ const char* kindLabel(Kind kind) {
 
 ImVec4 kindColor(Kind kind) {
     switch (kind) {
-    case Kind::Bug: return ImVec4(0.95f, 0.75f, 0.30f, 1.0f);
-    case Kind::Crash: return ImVec4(0.95f, 0.40f, 0.40f, 1.0f);
+    case Kind::Bug: return ImVec4(0.949f, 0.580f, 0.137f, 1.0f);
+    case Kind::Crash: return ImVec4(1.0f, 0.384f, 0.314f, 1.0f);
     case Kind::Replay: return ImVec4(0.55f, 0.75f, 0.95f, 1.0f);
     }
     return ImVec4(1, 1, 1, 1);
@@ -212,7 +212,7 @@ void App::frame(double dt) {
     }
     ImGui::Separator();
     if (m_status.empty()) ImGui::TextDisabled("%s", m_folder.c_str());
-    else if (m_statusError) ImGui::TextColored(ImVec4(1.0f, 0.45f, 0.45f, 1.0f), "%s", m_status.c_str());
+    else if (m_statusError) ImGui::TextColored(ImVec4(1.0f, 0.384f, 0.314f, 1.0f), "%s", m_status.c_str());
     else ImGui::TextUnformatted(m_status.c_str());
     drawDeletePopup();
     ImGui::End();
@@ -284,7 +284,7 @@ void App::drawList() {
         ImGui::TableNextColumn();
         ImGui::TextColored(kindColor(kind), "%s", kindLabel(kind));
         ImGui::TableNextColumn();
-        if (!r.error.empty()) ImGui::TextColored(ImVec4(1.0f, 0.45f, 0.45f, 1.0f), "%s", r.error.c_str());
+        if (!r.error.empty()) ImGui::TextColored(ImVec4(1.0f, 0.384f, 0.314f, 1.0f), "%s", r.error.c_str());
         else if (kind == Kind::Replay)
             ImGui::TextDisabled("%s", trf("%u player(s), %u s", r.recording.players, r.recording.ticks / std::max(1u, m_project.tickRate)).c_str());
         else if (!r.value("note").empty()) ImGui::TextUnformatted(r.value("note").c_str());
@@ -326,7 +326,7 @@ void App::drawDetail() {
     if (iconButton(kIconDelete, tr("Delete"))) m_confirmDelete = true;
 
     if (!r.error.empty()) {
-        ImGui::TextColored(ImVec4(1.0f, 0.45f, 0.45f, 1.0f), "%s", trf("Cannot read: %s", r.error.c_str()).c_str());
+        ImGui::TextColored(ImVec4(1.0f, 0.384f, 0.314f, 1.0f), "%s", trf("Cannot read: %s", r.error.c_str()).c_str());
         return;
     }
     if (!r.value("note").empty()) {
@@ -379,8 +379,8 @@ void App::drawDetail() {
                 const std::string line = r.log.substr(start, end - start);
                 start = end + 1;
                 if (!contains(line, m_logFilter)) continue;
-                if (line.find("ERROR") != std::string::npos) ImGui::TextColored(ImVec4(1.0f, 0.45f, 0.45f, 1.0f), "%s", line.c_str());
-                else if (line.find("WARN") != std::string::npos) ImGui::TextColored(ImVec4(0.95f, 0.75f, 0.30f, 1.0f), "%s", line.c_str());
+                if (line.find("ERROR") != std::string::npos) ImGui::TextColored(ImVec4(1.0f, 0.384f, 0.314f, 1.0f), "%s", line.c_str());
+                else if (line.find("WARN") != std::string::npos) ImGui::TextColored(ImVec4(0.949f, 0.580f, 0.137f, 1.0f), "%s", line.c_str());
                 else ImGui::TextUnformatted(line.c_str());
             }
         }
@@ -449,12 +449,12 @@ const char* stateLabel(ScenarioResult::State state) {
 
 ImVec4 stateColor(ScenarioResult::State state) {
     switch (state) {
-    case ScenarioResult::State::Passed: return ImVec4(0.45f, 0.85f, 0.45f, 1.0f);
-    case ScenarioResult::State::Failed: return ImVec4(1.0f, 0.45f, 0.45f, 1.0f);
-    case ScenarioResult::State::Running: return ImVec4(0.95f, 0.75f, 0.30f, 1.0f);
+    case ScenarioResult::State::Passed: return ImVec4(0.176f, 0.710f, 0.455f, 1.0f);
+    case ScenarioResult::State::Failed: return ImVec4(1.0f, 0.384f, 0.314f, 1.0f);
+    case ScenarioResult::State::Running: return ImVec4(0.949f, 0.580f, 0.137f, 1.0f);
     case ScenarioResult::State::NotRun: break;
     }
-    return ImVec4(0.6f, 0.6f, 0.6f, 1.0f);
+    return ImVec4(0.686f, 0.686f, 0.686f, 1.0f);
 }
 
 std::string baseName(const std::string& path) { return mkcontract::utf8Of(mkcontract::pathOf(path).stem()); }
@@ -622,7 +622,7 @@ void App::drawTestDetail() {
         ImGui::SetTooltip("%s", tr("Rewrites the == values in the file with the current results (when the rules changed on purpose)"));
     ImGui::SameLine();
     if (iconButton(kIconFolderOpen, tr("Show File"))) SDL_OpenURL(("file:///" + folderOf(f)).c_str());
-    for (const std::string& line : r.failures) ImGui::TextColored(ImVec4(1.0f, 0.45f, 0.45f, 1.0f), "%s", line.c_str());
+    for (const std::string& line : r.failures) ImGui::TextColored(ImVec4(1.0f, 0.384f, 0.314f, 1.0f), "%s", line.c_str());
     if (!ImGui::BeginTabBar("##testtabs")) return;
     if (ImGui::BeginTabItem(tr("File"))) {
         std::string text;
