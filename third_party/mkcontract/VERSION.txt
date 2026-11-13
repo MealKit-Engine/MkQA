@@ -1,1 +1,1 @@
-mkcontract v0.1.0+1f2c4cf (1f2c4cf) from https://github.com/MealKit-Engine/MealKit-Contract
+mkcontract v0.5.0 (607c7ee) from https://github.com/MealKit-Engine/MealKit-Contract

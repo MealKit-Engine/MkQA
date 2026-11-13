@@ -10,6 +10,8 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <cstring>
+#include <filesystem>
 
 namespace mkqa::tool {
 namespace {
@@ -23,6 +25,83 @@ constexpr const char* kIconCopy = "\xEE\xA3\x88";       // U+E8C8
 constexpr const char* kIconDelete = "\xEE\x9D\x8D";     // U+E74D delete files
 constexpr const char* kIconPlay = "\xEE\x9D\xA8";       // U+E768
 constexpr const char* kIconStop = "\xEE\x9C\x9A";       // U+E71A
+constexpr const char* kIconLanguage = "\xEF\x8A\xB7";   // U+F2B7 LocaleLanguage
+
+// Checkbox and radio colors (engine docs/TOOL_DESIGN.md 3.1, 3.2): a gray 4 box on a gray 2 panel is about 1.25:1, so an unchecked
+// box gets a gray 9 outline (gray 11 hovered) and a checked one the accent fill with a gray 12 mark. Same as MkRender tool/App.cpp
+const ImVec4 kControlOutline(0x8A / 255.0f, 0x8A / 255.0f, 0x8A / 255.0f, 1.0f);      // gray 9
+const ImVec4 kControlOutlineHover(0xAF / 255.0f, 0xAF / 255.0f, 0xAF / 255.0f, 1.0f); // gray 11
+const ImVec4 kControlMark(0xEB / 255.0f, 0xEB / 255.0f, 0xEB / 255.0f, 1.0f);         // gray 12
+const ImVec4 kAccent(0x3B / 255.0f, 0x63 / 255.0f, 0xFB / 255.0f, 1.0f);
+const ImVec4 kAccentHover(0x4B / 255.0f, 0x75 / 255.0f, 0xFF / 255.0f, 1.0f);
+const ImVec4 kAccentDown(0x27 / 255.0f, 0x4D / 255.0f, 0xEA / 255.0f, 1.0f);
+
+// Pushes the fill and mark of a checkbox or radio button in the state it is drawn in; popControlColors after
+void pushControlColors(bool on) {
+    const ImVec4 clear(0.0f, 0.0f, 0.0f, 0.0f);
+    const ImGuiStyle& s = ImGui::GetStyle();
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, on ? kAccent : clear);
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, on ? kAccentHover : s.Colors[ImGuiCol_FrameBg]);
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, on ? kAccentDown : s.Colors[ImGuiCol_FrameBgHovered]);
+    ImGui::PushStyleColor(ImGuiCol_CheckMark, kControlMark);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, s.FrameRounding * 0.5f); // a 4 px box, not the round 8 px of fields
+}
+
+void popControlColors() {
+    ImGui::PopStyleVar();
+    ImGui::PopStyleColor(4);
+}
+
+// Every checkbox goes through here, never ImGui::Checkbox (engine docs/TOOL_DESIGN.md 3.2)
+bool checkbox(const char* label, bool* v) {
+    const bool on = *v;
+    pushControlColors(on);
+    const bool changed = ImGui::Checkbox(label, v);
+    const float rounding = ImGui::GetStyle().FrameRounding;
+    popControlColors();
+    if (!on) {
+        // The box is the square at the start of the item (ImGui::Checkbox check_bb)
+        const ImVec2 p = ImGui::GetItemRectMin();
+        const float size = ImGui::GetFrameHeight();
+        const float width = std::max(1.0f, ImGui::GetStyle().FontScaleDpi);
+        const float inset = width * 0.5f;
+        ImGui::GetWindowDrawList()->AddRect({p.x + inset, p.y + inset}, {p.x + size - inset, p.y + size - inset},
+                                            ImGui::GetColorU32(ImGui::IsItemHovered() ? kControlOutlineHover : kControlOutline), rounding, 0, width);
+    }
+    return changed;
+}
+
+bool radioButton(const char* label, bool active) {
+    pushControlColors(active);
+    const bool pressed = ImGui::RadioButton(label, active);
+    popControlColors();
+    if (!active) {
+        // Same circle as ImGui::RadioButton: radius (square - 1) / 2 around the square's center
+        const ImVec2 p = ImGui::GetItemRectMin();
+        const float size = ImGui::GetFrameHeight();
+        const float width = std::max(1.0f, ImGui::GetStyle().FontScaleDpi);
+        const ImVec2 center(std::floor(p.x + size * 0.5f + 0.5f), std::floor(p.y + size * 0.5f + 0.5f));
+        ImGui::GetWindowDrawList()->AddCircle(center, (size - 1.0f) * 0.5f - width * 0.5f,
+                                              ImGui::GetColorU32(ImGui::IsItemHovered() ? kControlOutlineHover : kControlOutline), 0, width);
+    }
+    return pressed;
+}
+
+// Suite language (engine docs/TOOL_DESIGN.md section 4 "Language"): the "language" line of editor_settings.txt, which MealKit Manager
+// and every Mk tool read and write. Re-read once a second when the file changed, so a change anywhere shows here too
+std::filesystem::file_time_type settingsTime() {
+    std::error_code ec;
+    const std::string path = mkcontract::userPath(mkcontract::kEditorSettings);
+    if (path.empty()) return {};
+    const auto t = std::filesystem::last_write_time(std::filesystem::path(std::u8string(path.begin(), path.end())), ec);
+    return ec ? std::filesystem::file_time_type{} : t;
+}
+
+void loadSuiteLanguage(std::filesystem::file_time_type& time) {
+    const std::string code = mkcontract::editorSetting("language");
+    setLanguage(code.empty() ? "ko" : code);
+    time = settingsTime();
+}
 
 std::string lower(std::string s) {
     for (char& c : s)
@@ -82,7 +161,8 @@ bool App::iconButton(const char* glyph, const char* name) {
 
 
 void App::init(const std::string& project, const std::string& select) {
-    setLanguage(mkcontract::editorSetting("language").empty() ? "ko" : mkcontract::editorSetting("language"));
+    loadSuiteLanguage(m_settingsTime);
+    if (!languageOverride.empty()) setLanguage(languageOverride);
     m_selectName = select;
     std::vector<std::string> folders;
     if (!project.empty()) folders.push_back(project);
@@ -175,6 +255,11 @@ void App::frame(double dt) {
         refreshScenarios();
     }
     pollJobs();
+    m_sinceLanguageCheck += dt;
+    if (languageOverride.empty() && m_sinceLanguageCheck >= 1.0) { // MealKit Manager or another Mk tool changed the suite language
+        m_sinceLanguageCheck = 0.0;
+        if (settingsTime() != m_settingsTime) loadSuiteLanguage(m_settingsTime);
+    }
 
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->WorkPos);
@@ -239,17 +324,43 @@ void App::drawTop() {
     }
     ImGui::SameLine();
     if (iconButton(kIconFolderOpen, tr("Open Folder")) && !m_folder.empty()) SDL_OpenURL(("file:///" + m_folder).c_str());
-    if (m_testsPage) return; // the filters below are for the report list
+    if (m_testsPage) {
+        drawLanguageButton();
+        return; // the filters below are for the report list
+    }
     ImGui::SameLine();
-    ImGui::Checkbox(tr("Bug reports"), &m_showBug);
+    checkbox(tr("Bug reports"), &m_showBug);
     ImGui::SameLine();
-    ImGui::Checkbox(tr("Crashes"), &m_showCrash);
+    checkbox(tr("Crashes"), &m_showCrash);
     ImGui::SameLine();
-    ImGui::Checkbox(tr("Replays"), &m_showReplay);
+    checkbox(tr("Replays"), &m_showReplay);
     ImGui::SameLine();
-    ImGui::SetNextItemWidth(-1);
+    ImGui::SetNextItemWidth(-(ImGui::GetFrameHeight() + ImGui::GetStyle().ItemSpacing.x)); // room for the language button
     ImGui::InputTextWithHint("##search", tr("Search note, scene, version"), m_search, sizeof(m_search));
+    drawLanguageButton();
 }
+
+void App::drawLanguageButton() {
+    // The name in English too while another language is on, so someone who can't read it still knows the button
+    const std::string name = std::strcmp(language(), "en") == 0 ? std::string("Language") : std::string(tr("Language")) + " (Language)";
+    ImGui::SameLine();
+    ImGui::SetCursorPosX(ImGui::GetWindowContentRegionMax().x - ImGui::GetFrameHeight()); // the right end, inside the padding
+    if (iconButton(kIconLanguage, name.c_str())) ImGui::OpenPopup("##language");
+    if (ImGui::BeginPopup("##language")) {
+        for (const Language& l : kLanguages) {
+            if (ImGui::MenuItem(l.name, nullptr, std::strcmp(language(), l.code) == 0)) {
+                languageOverride.clear();
+                setLanguage(l.code);
+                if (mkcontract::setEditorSetting("language", l.code)) m_settingsTime = settingsTime();
+                else {
+                    setStatus(trf("Cannot save the language to %s", mkcontract::userPath(mkcontract::kEditorSettings).c_str()), true);
+                }
+            }
+        }
+        ImGui::EndPopup();
+    }
+}
+
 
 void App::drawList() {
     if (!m_project.valid) {

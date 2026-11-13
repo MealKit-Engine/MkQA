@@ -351,9 +351,9 @@ int main(int argc, char** argv) {
     app.window = window;
     app.iconFont = iconFont;
     app.renderer = renderer;
+    app.languageOverride = language; // --lang: this run only, the suite setting isn't followed then
     app.init(project, select);
     if (testsPage) app.showTests();
-    if (!language.empty()) mkqa::setLanguage(language);
 
     Uint64 last = SDL_GetPerformanceCounter();
     std::string shownTitle;

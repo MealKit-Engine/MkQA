@@ -6,6 +6,7 @@
 #include "mkqa/Tests.h"
 
 #include <map>
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -19,6 +20,7 @@ class App {
 public:
     SDL_Window* window = nullptr;
     bool iconFont = false; // the Segoe icon font merged into the UI font (main.cpp loadFonts)
+    std::string languageOverride; // --lang: used instead of the suite language, which isn't followed then
     SDL_Renderer* renderer = nullptr;
 
     // project: --project folder (else the most recent project); select: file name to select (--select)
@@ -31,6 +33,10 @@ public:
 private:
     // Flat square icon button with its name in the tooltip (engine docs/TOOL_DESIGN.md section 1); the name as the label without the icon font
     bool iconButton(const char* glyph, const char* name);
+    // Language icon at the right end of the top row: the languages by their own names (engine docs/TOOL_DESIGN.md section 4 "Language")
+    void drawLanguageButton();
+    double m_sinceLanguageCheck = 0.0;
+    std::filesystem::file_time_type m_settingsTime{};
     void useProject(const std::string& directory);
     void refresh();
     void select(int index);
